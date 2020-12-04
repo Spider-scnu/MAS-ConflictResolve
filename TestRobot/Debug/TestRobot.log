@@ -1,0 +1,40 @@
+﻿生成启动时间为 2019/5/23 13:20:21。
+     1>项目“E:\硕士论文\Multi-Agent-System-Multi-Thread\TestRobot\TestRobot.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         D:\VS2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Test.cpp
+         Test.cpp
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(248): warning C4018: “<=”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(421): warning C4244: “=”: 从“unsigned int”转换到“float”，可能丢失数据
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(427): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(431): warning C4305: “=”: 从“int”到“float”截断
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(439): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(475): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(480): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(507): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(518): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(522): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(539): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(544): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(571): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(582): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(585): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(672): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(681): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(807): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(816): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(961): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(970): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(1197): warning C4305: “参数”: 从“int”到“const float”截断
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(1295): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(1318): warning C4305: “参数”: 从“int”到“const float”截断
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(1333): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(1355): warning C4305: “参数”: 从“int”到“const float”截断
+     1>e:\硕士论文\multi-agent-system-multi-thread\testrobot\test.cpp(1364): warning C4018: “<”: 有符号/无符号不匹配
+       Link:
+         D:\VS2013\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\硕士论文\Multi-Agent-System-Multi-Thread\Debug\TestRobot.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\硕士论文\Multi-Agent-System-Multi-Thread\Debug\TestRobot.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\硕士论文\Multi-Agent-System-Multi-Thread\Debug\TestRobot.lib" /MACHINE:X86 Debug\Test.obj
+         TestRobot.vcxproj -> E:\硕士论文\Multi-Agent-System-Multi-Thread\Debug\TestRobot.exe
+     1>已完成生成项目“E:\硕士论文\Multi-Agent-System-Multi-Thread\TestRobot\TestRobot.vcxproj”(Build 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:03.61
