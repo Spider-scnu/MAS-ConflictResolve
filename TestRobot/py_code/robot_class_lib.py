@@ -30,6 +30,16 @@ class Robot:
         self.predicted_path = [] # a list of Points from init_pos to tar_pos
         self.optimal_path = "tba"
         self.all_available_paths = {} # all 5 actions (up, down, left, right, suspension)
+
+        ##########################
+        # qiukaibin
+
+        self.account = 0
+        self.start_timestep = 0
+        self.end_timestep = 0
+        self.task_finish = False
+        
+        ############################
         
         # for smart robots
         # self.trajectory_history = [] # (Point, status, global_runtime)

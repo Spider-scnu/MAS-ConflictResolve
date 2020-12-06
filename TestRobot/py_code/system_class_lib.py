@@ -29,12 +29,15 @@ class System:
         self.record = Record(self.robots, self.map_graph)
 
         ######################################
+        #  qiukaibin
         self.feature_map = np.ones(shape = (self.map.map_size[0], self.map.map_size[1]))
-        
 
         for node in self.map.map_graph.nodes():
             self.feature_map[node[1], node[0]] = 0
-        print(self.feature_map)
+        #print(self.feature_map)
+
+        self.fixed_task_complete_reward = 200
+        ######################################
         
 
     def readInitPositionsfromFile(self):
@@ -104,7 +107,7 @@ class System:
 
     
 
-    def conflictResolve(self):
+    def conflictResolve(self, timestep = 0):
         # tell robots with conflicts to replan their paths
         robot_indices_path_replanned = []
         ################
@@ -116,7 +119,7 @@ class System:
         self.feature_agent_target_posiotion = np.zeros_like(self.feature_agent_position)
         self.feature_other_agent_target_position = np.zeros_like(self.feature_agent_position)
         self.feature_agent_route = np.zeros_like(self.feature_agent_position)
-        print('------------shape----------', self.feature_agent_position.shape)
+        #print('------------shape----------', self.feature_agent_position.shape)
 
         ##################
 
@@ -131,7 +134,7 @@ class System:
 
             agent_target_position = self.robots[robotIndex].target_position
             # agent_target_position[0] = self.map.map_size[0] - 1 - agent_target_position[0]
-            print(self.map.map_size[0] - 1 - agent_target_position[1], agent_target_position)
+            #print(self.map.map_size[0] - 1 - agent_target_position[1], agent_target_position)
             self.feature_agent_target_posiotion[self.map.map_size[0] - 1 - agent_target_position[1], agent_target_position[0],  robotIndex] = 1
             
 
@@ -140,7 +143,7 @@ class System:
 
         next_conflict_dict = self.record.conflict_robots[0]
         current_position_dict = self.record.conflict_robots[1]
-        print('conflictResolve', next_conflict_dict, current_position_dict)
+        #print('conflictResolve', next_conflict_dict, current_position_dict)
         
         # highest priority ranking robots
         for item in next_conflict_dict.items():
@@ -160,7 +163,7 @@ class System:
 
         ################################
         # qiukaibin
-        print(conflict_robot_indices)
+        #print(conflict_robot_indices)
         feature_inputs = []
         for robotPair in conflict_robot_indices:
             agent_inputs = []
@@ -181,11 +184,12 @@ class System:
                 agent_input[:, :, 3] = self.feature_other_agent_position[:, :, conflictRobotIndex].copy()
                 agent_input[:, :, 4] = self.feature_other_agent_target_position[:, :, conflictRobotIndex].copy()
                 agent_inputs.append(agent_input)
+            
             feature_inputs.append(agent_inputs)
         #     print('--------conflictRobotIndex---------', self.robots[conflictRobotIndex].current_position)
         # print('-----------replanned--------------', robot_indices_path_replanned, conflict_robot_indices)
-        if len(feature_inputs) >=1:
-            print(feature_inputs[0][0][:,:,3])
+        #if len(feature_inputs) >=1:
+        #    print(feature_inputs[0][0][:,:,3])
         #################################
         # add current caputured positions to exemption list
         for item in current_position_dict.items():
@@ -260,12 +264,12 @@ class System:
             robot.executeAction()
         # 6. record, write to file, display on UI 
 
-    def runOnce(self, step = 1):
+    def runOnce(self, step = 1, steptime = 0):
         for s in range(step):
             self.takeAction()
             self.push2Display()
-            self.robotStatusCheck()
-            self.taskCompletionCheck()
+            self.robotStatusCheck(steptime)
+            self.taskCompletionCheck(steptime)
             #self.updateMap()
 
             self.record.takeCurrentStepRecord(self.robots)
@@ -273,29 +277,37 @@ class System:
             self.record.conflictCheck()
 
             # resolve all conflicts
-            print('conflict-robot', self.record.conflict_robots)
+            #print('conflict-robot', self.record.conflict_robots)
             while (self.record.planned_next_step_conflict_flag):
                 #break
-                self.conflictResolve()
+                self.conflictResolve(steptime)
                 self.record.takeCurrentStepRecord(self.robots)
                 self.record.conflictCheck()
                 # print("Solving local conflicts...")
             #print('flag', self.record.planned_next_step_conflict_flag)
-            print('conflict-robot', self.record.conflict_robots)
-            self.updateMap()
+            #print('conflict-robot', self.record.conflict_robots)
+            self.updateMap(steptime)
             sleep(1)
 
     # or def in class Robot
-    def robotStatusCheck(self):
+    def robotStatusCheck(self, timestep = 0):
         new_obs = []
         for robot in self.robots:
             if (robot.status == "task_complete"):
                 new_obs.append(robot.target_position)
+                ###################
+                # qiukaibin
+                if (robot.task_finish == False):
+                    robot.end_timestep = timestep
+                    robot.account += self.fixed_task_complete_reward - robot.start_timestep - robot.end_timestep
+                    print('---------robot-{} : account={}--------{}-{}'.format(robot.idx, robot.account, robot.start_timestep, robot.end_timestep))
+                    robot.task_finish = True
+                ###################
         return new_obs
     
-    def updateMap(self):
+    def updateMap(self, timestep = 0):
         updated_local_map_graph = self.initial_map_graph.copy()
-        new_obs = self.robotStatusCheck()
+        new_obs = self.robotStatusCheck(timestep)
         updated_local_map_graph.remove_nodes_from(new_obs)
 
         for robot in self.robots:
@@ -310,10 +322,16 @@ class System:
         # for robot in self.robots:
         #     robot.plotPath()
 
-    def taskCompletionCheck(self):
+    def taskCompletionCheck(self, steptime = 0):
         if (any(robot.status != "task_complete" for robot in self.robots)):
             pass
         else:
+            ###########################
+            # qiukaibin
+            for robot in self.robots:
+                robot.start_timestep = steptime
+                robot.task_finish = False
+            ##########################
             self.assignNewTasks4AllRobots()
             print("All tasks are completed")
             print()
@@ -331,14 +349,14 @@ class System:
             robot.robot_local_map = self.initial_map_graph
             # updated_local_map_graph = robot.robot_local_map
             robot.addNodes(new_obs)
-            print(self.task.target_position)
+            #print(self.task.target_position)
             robot.target_position = self.task.target_position
             robot.status = "init"
             robot.naivePathGenerator()
 
     def takeAction(self):
         for robot in self.robots:
-                robot.executeAction()
+            robot.executeAction()
         
         self.record.global_runtime += 1
 
