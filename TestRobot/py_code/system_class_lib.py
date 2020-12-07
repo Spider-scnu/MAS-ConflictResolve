@@ -34,7 +34,7 @@ class System:
 
         for node in self.map.map_graph.nodes():
             self.feature_map[node[1], node[0]] = 0
-        #print(self.feature_map)
+        print(self.feature_map)
 
         self.fixed_task_complete_reward = 200
         ######################################
@@ -112,14 +112,20 @@ class System:
         robot_indices_path_replanned = []
         ################
         # qiukaibin
-
+        # Observation
+        # 1. self.feature_map : 地图信息，固定的，size=h*w。这是一个二值矩阵，1表示有障碍物，0表示可通行的道路。
+        # 2. self.feature_agent_position : 当前冲突机器人A的位置，size=h*w*n，n是该系统中机器人数量。1表示目前所在的位置，0表示未知区域。
+        # 3. self.feature_other_agent_position : 与机器人A冲突的所有机器人的位置，size=h*w*n。1表示其它机器人的位置，0表示未知区域。
+        # 4. self.feature_agent_target_position : 机器人A卸货的目标位置，size=h*w*n。1表示目标位置。
+        # 5. self.feature_other_agent_target_position : 与机器人A冲突的所有机器人的目标位置，size=h*w*n。
         conflict_robot_indices = []
+
         self.feature_agent_position = np.zeros(shape = (self.map.map_size[0], self.map.map_size[1], self.total_number_of_robots)) #np.zeros_like(self.feature_map)
         self.feature_other_agent_position = np.zeros_like(self.feature_agent_position)
-        self.feature_agent_target_posiotion = np.zeros_like(self.feature_agent_position)
+        self.feature_agent_target_position = np.zeros_like(self.feature_agent_position)
         self.feature_other_agent_target_position = np.zeros_like(self.feature_agent_position)
-        self.feature_agent_route = np.zeros_like(self.feature_agent_position)
-        #print('------------shape----------', self.feature_agent_position.shape)
+        # self.feature_agent_route = np.zeros_like(self.feature_agent_position)
+        # print('------------shape----------', self.feature_agent_position.shape)
 
         ##################
 
@@ -133,7 +139,7 @@ class System:
 
             agent_target_position = self.robots[robotIndex].target_position
 
-            self.feature_agent_target_posiotion[self.map.map_size[0] - 1 - agent_target_position[1], agent_target_position[0],  robotIndex] = 1
+            self.feature_agent_target_position[self.map.map_size[0] - 1 - agent_target_position[1], agent_target_position[0],  robotIndex] = 1
             
 
         ################
@@ -145,20 +151,31 @@ class System:
         # highest priority ranking robots
         for item in next_conflict_dict.items():
             sorted_local_ranking_indices = item[1].copy() # max 4
+            
             sorted_local_ranking_indices.sort()
+
             if (len(sorted_local_ranking_indices) >= 2):
-                # find all robots that need to replan their paths
-                robot_indices_path_replanned.append(sorted_local_ranking_indices[1:])
 
                 ############################
                 # qiukaibin
+                # 冲突的机器序号
+                # [[0,1], [2, 9, 10]]
                 conflict_robot_indices.append(sorted_local_ranking_indices)
-                ############################
+
+                # 决定获得路权的机器人以及需要让路的机器人
+                fixed_robot_indices = np.random.choice(sorted_local_ranking_indices)
+                # print('----fixed_robot_indices----', fixed_robot_indices, sorted_local_ranking_indices)
+
+                sorted_local_ranking_indices.remove(fixed_robot_indices)
+                # print('----pop----', sorted_local_ranking_indices)
+                #############################
+
+                # find all robots that need to replan their paths
+                robot_indices_path_replanned.append(sorted_local_ranking_indices)
             
             # add all captured positions (next step)
             exempted_positions.append(item[0])
             
-
         ################################
         # qiukaibin
         feature_inputs = []
@@ -180,7 +197,7 @@ class System:
                 agent_input = np.zeros(shape = (self.map.map_size[0], self.map.map_size[1], 5))
                 agent_input[:, :, 0] = self.feature_map.copy()
                 agent_input[:, :, 1] = self.feature_agent_position[:, :, conflictRobotIndex].copy()
-                agent_input[:, :, 2] = self.feature_agent_target_posiotion[:, :, conflictRobotIndex].copy()
+                agent_input[:, :, 2] = self.feature_agent_target_position[:, :, conflictRobotIndex].copy()
                 agent_input[:, :, 3] = self.feature_other_agent_position[:, :, conflictRobotIndex].copy()
                 agent_input[:, :, 4] = self.feature_other_agent_target_position[:, :, conflictRobotIndex].copy()
                 agent_inputs.append(agent_input)
@@ -205,16 +222,6 @@ class System:
         for elimination_iter in range(0, max_depth):
             for inner_robot_list in robot_indices_path_replanned:
                 idx = inner_robot_list[0]
-                # print(idx)
-                # 2020-10-15 2:48 pm
-                # find available suboptimal path for self.robot[idx]
-
-                # exempted_positions_by_idx = []
-                # exempted_positions_by_idx = exempted_positions.copy()
-                # while (any(pos == self.robots[idx].current_position for pos in exempted_positions)):
-                #     exempted_positions_by_idx.remove(self.robots[idx].current_position)
-                
-                # self.robots[idx].adaptivePathSelector(exempted_positions_by_idx)
 
                 self.robots[idx].adaptivePathSelector(exempted_positions, conflict_resolve = True)
                 exempted_positions.append(self.robots[idx].next_position)
@@ -294,7 +301,7 @@ class System:
                 # qiukaibin
                 if (robot.task_finish == False):
                     robot.end_timestep = timestep
-                    robot.account += self.fixed_task_complete_reward - robot.start_timestep - robot.end_timestep
+                    robot.account += self.fixed_task_complete_reward + robot.start_timestep - robot.end_timestep
                     print('---------robot-{} : account={}--------{}-{}'.format(robot.idx, robot.account, robot.start_timestep, robot.end_timestep))
                     robot.task_finish = True
                 ###################

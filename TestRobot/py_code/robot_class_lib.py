@@ -33,12 +33,13 @@ class Robot:
 
         ##########################
         # qiukaibin
-
+        # 定义机器人的账户，接到任务的起始时间，完成任务的终点时间，是否完成任务，估计在当前位置完成任务时所能获得到reward
         self.account = 0
         self.start_timestep = 0
         self.end_timestep = 0
         self.task_finish = False
         
+        self.estimate_complete_task_reward = 0
         ############################
         
         # for smart robots
@@ -96,16 +97,16 @@ class Robot:
             self.all_available_paths.update({self.next_position: [self.predicted_path, dist]})
 
     # compute and check all available paths when conflict happens 
-    def suboptimalPathGenerator(self, algorithm="AStar"):
+    def suboptimalPathGenerator(self, algorithm="AStar", exempted_next_positions = [], conflict_resolve = False):
         if (algorithm == "FloydWarshall"):
-            return self.suboptimalPathGenerator_FW()
+            return self.suboptimalPathGenerator_FW(exempted_next_positions=exempted_next_positions, conflict_resolve = conflict_resolve)
         elif (algorithm == "AStar"):
-            return self.suboptimalPathGenerator_AStar()
+            return self.suboptimalPathGenerator_AStar(exempted_next_positions=exempted_next_positions, conflict_resolve = conflict_resolve)
         else:
             print("Please select a path planning algorithm")
             raise ValueError
 
-    def suboptimalPathGenerator_FW(self):
+    def suboptimalPathGenerator_FW(self, exempted_next_positions = [], conflict_resolve = False):
         subopt_paths = {}
         if (self.current_position == self.target_position):
             subopt_paths.update({self.target_position: [[self.target_position], 0]})
@@ -119,7 +120,7 @@ class Robot:
                 subopt_paths.update({neighbor: [path, dist]})
         return sorted(subopt_paths.items(), key=lambda x: x[1][1])
 
-    def suboptimalPathGenerator_AStar(self):
+    def suboptimalPathGenerator_AStar(self, exempted_next_positions = [], conflict_resolve = False):
         subopt_paths = {}
         if (self.current_position == self.target_position):
             subopt_paths.update({self.target_position: [[self.target_position], 0]})
@@ -130,13 +131,13 @@ class Robot:
 
                 path = nx.astar_path(self.robot_local_map, neighbor, self.target_position)
                 path.insert(0, self.current_position)
-
+                # print('----suboptimalPathGenerator_AStar----', self.idx, path)
                 subopt_paths.update({neighbor: [path, dist]})
         return sorted(subopt_paths.items(), key=lambda x: x[1][1])
 
-    def adaptivePathGenerator(self, algorithm="AStar"):
+    def adaptivePathGenerator(self, algorithm="AStar", exempted_next_positions = [], conflict_resolve = False):
         self.all_available_paths = {}
-        subopt = self.suboptimalPathGenerator(algorithm=algorithm)
+        subopt = self.suboptimalPathGenerator(algorithm=algorithm, exempted_next_positions = exempted_next_positions,  conflict_resolve = conflict_resolve)
         if (self.current_position == self.target_position):
             min_dist = 0
             self.all_available_paths.update({self.current_position: [[self.current_position], 0]})
@@ -164,9 +165,9 @@ class Robot:
 
         # return self.all_available_paths
 
-    def adaptivePathSelector(self, exempted_next_positions, algorithm="AStar"):
+    def adaptivePathSelector(self, exempted_next_positions, algorithm="AStar", conflict_resolve = False):
         # generate all available paths
-        self.adaptivePathGenerator(algorithm=algorithm)
+        self.adaptivePathGenerator(algorithm=algorithm, exempted_next_positions = exempted_next_positions, conflict_resolve = conflict_resolve)
 
         if (self.current_position == self.target_position):
             self.predicted_path = [self.current_position]
@@ -223,6 +224,7 @@ class Robot:
             self.current_position = self.predicted_path[1]
             self.next_position = self.predicted_path[2]
             self.predicted_path.pop(0)
+            # print('----path----', self.idx, self.predicted_path)
         except IndexError:
             # stay at current position
             #self.current_position = self.predicted_path[0]
