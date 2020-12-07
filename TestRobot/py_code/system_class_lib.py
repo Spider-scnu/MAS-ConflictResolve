@@ -126,15 +126,13 @@ class System:
         all_agent_position = np.zeros_like(self.feature_map)
         for robotIndex in range(self.total_number_of_robots):
             agent_position = self.robots[robotIndex].current_position
-            #print(agent_position[0], self.map.map_size[0])
             # agent_position[0] = self.map.map_size[0] - 1 - agent_position[0]
             all_agent_position[self.map.map_size[0] - 1 - agent_position[1], agent_position[0]] = 1
             self.feature_agent_position[self.map.map_size[0] - 1 - agent_position[1], agent_position[0],  robotIndex] = 1
 
 
             agent_target_position = self.robots[robotIndex].target_position
-            # agent_target_position[0] = self.map.map_size[0] - 1 - agent_target_position[0]
-            #print(self.map.map_size[0] - 1 - agent_target_position[1], agent_target_position)
+
             self.feature_agent_target_posiotion[self.map.map_size[0] - 1 - agent_target_position[1], agent_target_position[0],  robotIndex] = 1
             
 
@@ -143,7 +141,6 @@ class System:
 
         next_conflict_dict = self.record.conflict_robots[0]
         current_position_dict = self.record.conflict_robots[1]
-        #print('conflictResolve', next_conflict_dict, current_position_dict)
         
         # highest priority ranking robots
         for item in next_conflict_dict.items():
@@ -160,14 +157,17 @@ class System:
             
             # add all captured positions (next step)
             exempted_positions.append(item[0])
+            
 
         ################################
         # qiukaibin
-        #print(conflict_robot_indices)
         feature_inputs = []
         for robotPair in conflict_robot_indices:
             agent_inputs = []
             for conflictRobotIndex in robotPair:
+                self.robots[conflictRobotIndex].estimate_complete_task_reward = self.fixed_task_complete_reward - timestep +\
+                                                     self.robots[conflictRobotIndex].start_timestep - len(self.robots[conflictRobotIndex].predicted_path)
+                # print('----estimate_complete_task_reward----', self.robots[conflictRobotIndex].estimate_complete_task_reward)
                 agent_position = self.robots[conflictRobotIndex].current_position
                 # agent_position[0] = self.map.map_size[0] - 1 - agent_position[0]
                 self.feature_other_agent_position[:, :, conflictRobotIndex] = all_agent_position.copy()
@@ -186,15 +186,12 @@ class System:
                 agent_inputs.append(agent_input)
             
             feature_inputs.append(agent_inputs)
-        #     print('--------conflictRobotIndex---------', self.robots[conflictRobotIndex].current_position)
-        # print('-----------replanned--------------', robot_indices_path_replanned, conflict_robot_indices)
-        #if len(feature_inputs) >=1:
-        #    print(feature_inputs[0][0][:,:,3])
         #################################
         # add current caputured positions to exemption list
         for item in current_position_dict.items():
             exempted_positions.append(item[0])
-            #print('current', item)
+            # print('current', item, self.robots[item[1]].current_position)
+            # print()
         
         ##########################
         # qiukaibin
@@ -219,7 +216,7 @@ class System:
                 
                 # self.robots[idx].adaptivePathSelector(exempted_positions_by_idx)
 
-                self.robots[idx].adaptivePathSelector(exempted_positions)
+                self.robots[idx].adaptivePathSelector(exempted_positions, conflict_resolve = True)
                 exempted_positions.append(self.robots[idx].next_position)
                 # print(self.robots[idx].next_position)
 
@@ -237,7 +234,7 @@ class System:
                 if (index == robot.idx):
                     pass
                 else:
-                    robot.adaptivePathSelector(exempted_positions)
+                    robot.adaptivePathSelector(exempted_positions, conflict_resolve = True)
                     exempted_positions.append(robot.next_position)
 
             except KeyError: # next pos of robot does not conflicts with current robots
@@ -284,8 +281,6 @@ class System:
                 self.record.takeCurrentStepRecord(self.robots)
                 self.record.conflictCheck()
                 # print("Solving local conflicts...")
-            #print('flag', self.record.planned_next_step_conflict_flag)
-            #print('conflict-robot', self.record.conflict_robots)
             self.updateMap(steptime)
             sleep(1)
 
@@ -305,14 +300,16 @@ class System:
                 ###################
         return new_obs
     
-    def updateMap(self, timestep = 0):
+    def updateMap(self, timestep = 0, exempted_positions = []):
         updated_local_map_graph = self.initial_map_graph.copy()
         new_obs = self.robotStatusCheck(timestep)
+        print('----new_obs----', new_obs)
         updated_local_map_graph.remove_nodes_from(new_obs)
 
         for robot in self.robots:
             if (robot.status != "task_complete"):
                 robot.robot_local_map = updated_local_map_graph
+                #for 
             # elif (robot.status == "task_complete"):
             #     robot.robot_local_map = self.initial_map_graph
             #     self.task.taskGenerator("sequential")
